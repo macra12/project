@@ -22,14 +22,14 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Filter out unsupported request types and URLs with unsupported schemes
-  if (event.request.url.startsWith('chrome-extension://') || event.request.method !== 'GET') {
-    return;
-  }
-
-  // Only cache HTTP or HTTPS requests
-  if (!event.request.url.startsWith('http://') && !event.request.url.startsWith('https://')) {
-    return;
+  // Filter out unsupported request types and schemes
+  if (
+    event.request.url.startsWith('chrome-extension://') || // Skip chrome-extension:// requests
+    event.request.method !== 'GET' ||                    // Only process GET requests
+    !event.request.url.startsWith('http://') &&          // Only process HTTP URLs
+    !event.request.url.startsWith('https://')            // Only process HTTPS URLs
+  ) {
+    return; // Don't process the request
   }
 
   event.respondWith(
@@ -42,17 +42,15 @@ self.addEventListener('fetch', (event) => {
         return fetch(event.request)
           .then((response) => {
             if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response; // No cache for non-basic responses (e.g., cross-origin)
+              return response; // Don't cache non-basic responses (e.g., cross-origin)
             }
 
             const responseToCache = response.clone();
 
             caches.open(CACHE_NAME)
               .then((cache) => {
-                // Cache HTTP/HTTPS requests only
-                if (event.request.url.startsWith('http') || event.request.url.startsWith('https')) {
-                  cache.put(event.request, responseToCache);
-                }
+                // Cache HTTP/HTTPS responses
+                cache.put(event.request, responseToCache);
               })
               .catch((error) => {
                 console.error('Caching error:', error);

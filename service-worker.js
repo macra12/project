@@ -22,12 +22,8 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Filter out unsupported request types
-  if (
-    event.request.url.startsWith('chrome-extension://') || 
-    event.request.url.includes('extension') ||
-    event.request.method !== 'GET'
-  ) {
+  // Filter out unsupported request types (chrome-extension)
+  if (event.request.url.startsWith('chrome-extension://') || event.request.method !== 'GET') {
     return;
   }
 
@@ -40,11 +36,7 @@ self.addEventListener('fetch', (event) => {
 
         return fetch(event.request)
           .then((response) => {
-            if (
-              !response || 
-              response.status !== 200 || 
-              response.type !== 'basic'
-            ) {
+            if (!response || response.status !== 200 || response.type !== 'basic') {
               return response;
             }
 
@@ -52,10 +44,8 @@ self.addEventListener('fetch', (event) => {
 
             caches.open(CACHE_NAME)
               .then((cache) => {
-                if (
-                  event.request.url.startsWith('http') || 
-                  event.request.url.startsWith('https')
-                ) {
+                // Cache only HTTP/HTTPS requests
+                if (event.request.url.startsWith('http') || event.request.url.startsWith('https')) {
                   cache.put(event.request, responseToCache);
                 }
               })
@@ -67,6 +57,7 @@ self.addEventListener('fetch', (event) => {
           })
           .catch((error) => {
             console.error('Fetch error:', error);
+            // Offline fallback response
             return new Response('Offline', {
               status: 404,
               headers: { 'Content-Type': 'text/plain' }
@@ -78,7 +69,7 @@ self.addEventListener('fetch', (event) => {
 
 self.addEventListener('activate', (event) => {
   const cacheWhitelist = [CACHE_NAME];
-  
+
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(

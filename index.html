@@ -3,15 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Offline Website</title>
+    <title>Online/Offline Website</title>
     <link rel="stylesheet" href="./style.css">
     <link rel="manifest" href="./manifest.json">
 </head>
 <body>
-    <h1>Offline-Capable Website</h1>
-    <div id="status"></div>
-    <img src="./images/dog.png" alt="Offline Image">
+    <div id="connection-status">
+        <h1 id="status-text">Checking Connection...</h1>
+        <div id="status-indicator"></div>
+    </div>
     
+    <div id="content">
+        <h2>Welcome to My Website</h2>
+        <img src="./images/dog.png" alt="Offline Image">
+    </div>
+
     <script src="./script.js"></script>
 </body>
 </html>

@@ -1,11 +1,33 @@
 body {
   font-family: Arial, sans-serif;
   text-align: center;
-  margin-top: 50px;
+  margin: 0;
+  padding: 0;
   background-color: #f0f0f0;
 }
 
-h1 {
+#connection-status {
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+#status-indicator {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background-color: gray;
+}
+
+.online {
+  background-color: green !important;
+}
+
+.offline {
+  background-color: red !important;
+}
+
+#status-text {
   color: #333;
 }
 

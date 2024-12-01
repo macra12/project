@@ -22,8 +22,13 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Filter out unsupported request types (chrome-extension)
+  // Filter out unsupported request types and URLs with unsupported schemes
   if (event.request.url.startsWith('chrome-extension://') || event.request.method !== 'GET') {
+    return;
+  }
+
+  // Only cache HTTP or HTTPS requests
+  if (!event.request.url.startsWith('http://') && !event.request.url.startsWith('https://')) {
     return;
   }
 
@@ -31,20 +36,20 @@ self.addEventListener('fetch', (event) => {
     caches.match(event.request)
       .then((cachedResponse) => {
         if (cachedResponse) {
-          return cachedResponse;
+          return cachedResponse; // Serve from cache if available
         }
 
         return fetch(event.request)
           .then((response) => {
             if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
+              return response; // No cache for non-basic responses (e.g., cross-origin)
             }
 
             const responseToCache = response.clone();
 
             caches.open(CACHE_NAME)
               .then((cache) => {
-                // Cache only HTTP/HTTPS requests
+                // Cache HTTP/HTTPS requests only
                 if (event.request.url.startsWith('http') || event.request.url.startsWith('https')) {
                   cache.put(event.request, responseToCache);
                 }
@@ -53,11 +58,11 @@ self.addEventListener('fetch', (event) => {
                 console.error('Caching error:', error);
               });
 
-            return response;
+            return response; // Return the network response
           })
           .catch((error) => {
             console.error('Fetch error:', error);
-            // Offline fallback response
+            // Return a fallback offline response if network request fails
             return new Response('Offline', {
               status: 404,
               headers: { 'Content-Type': 'text/plain' }
@@ -75,7 +80,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheWhitelist.indexOf(cacheName) === -1) {
-            return caches.delete(cacheName);
+            return caches.delete(cacheName); // Delete old caches
           }
         })
       );

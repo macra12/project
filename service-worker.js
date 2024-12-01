@@ -1,9 +1,11 @@
 const CACHE_NAME = 'offline-cache-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/script.js',
+  './',
+  './index.html',
+  './style.css',
+  './script.js',
+  './service-worker.js',
+  './manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
@@ -25,5 +27,16 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker activated');
+  const cacheWhitelist = [CACHE_NAME];
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheWhitelist.indexOf(cacheName) === -1) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
 });

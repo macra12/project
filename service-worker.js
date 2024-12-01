@@ -1,9 +1,9 @@
 const CACHE_NAME = 'offline-cache-v1';
 const urlsToCache = [
-  '',
-  'index.html',
-  'style.css',
-  'script.js',
+  '/',
+  '/index.html',
+  '/style.css',
+  '/script.js',
 ];
 
 self.addEventListener('install', (event) => {
@@ -21,4 +21,11 @@ self.addEventListener('fetch', (event) => {
       return response || fetch(event.request);
     })
   );
+});
+self.addEventListener('install', (event) => {
+  console.log('Service Worker installing...');
+});
+
+self.addEventListener('activate', (event) => {
+  console.log('Service Worker activated');
 });

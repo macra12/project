@@ -1,19 +1,31 @@
 const CACHE_NAME = 'offline-cache-v1';
 const CACHE_URLS = [
-  '/',
-  'index.html',
-  'style.css',
-  'script.js',
-  'manifest.json',
-  'images/dog.png'
+  './',
+  './index.html',
+  './style.css',
+  './script.js',
+  './manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Cached static assets');
-        return cache.addAll(CACHE_URLS);
+        // Use cache.addAll with a filter to ignore unsupported requests
+        return cache.addAll(
+          CACHE_URLS.filter(url => {
+            try {
+              new URL(url, location.origin);
+              return true;
+            } catch {
+              console.warn(`Skipping invalid URL: ${url}`);
+              return false;
+            }
+          })
+        );
+      })
+      .then(() => {
+        console.log('Cache installation successful');
       })
       .catch((error) => {
         console.error('Cache installation error:', error);
@@ -22,6 +34,11 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Filter out non-HTTP(S) requests
+  if (!event.request.url.startsWith('http') && !event.request.url.startsWith('https')) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
@@ -33,13 +50,14 @@ self.addEventListener('fetch', (event) => {
         // Try network request
         return fetch(event.request)
           .then((networkResponse) => {
-            // Only cache GET requests with successful responses
+            // Only cache successful GET requests
             if (
               event.request.method === 'GET' && 
-              networkResponse.ok && 
+              networkResponse.status === 200 && 
               networkResponse.type === 'basic'
             ) {
               const responseCopy = networkResponse.clone();
+              
               caches.open(CACHE_NAME)
                 .then((cache) => {
                   cache.put(event.request, responseCopy);
@@ -53,7 +71,7 @@ self.addEventListener('fetch', (event) => {
           })
           .catch(() => {
             // Fallback for offline scenarios
-            return new Response('Offline mode: Resource unavailable', { 
+            return new Response('Offline: Resource unavailable', { 
               status: 404, 
               headers: { 'Content-Type': 'text/plain' } 
             });

@@ -45,7 +45,7 @@ function registerServiceWorker() {
           .catch((error) => {
               console.error('Service Worker registration failed:', error);
           });
-}
+}}
 
 // Event Listeners
 window.addEventListener('load', () => {

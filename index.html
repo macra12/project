@@ -4,14 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Offline/Online Website</title>
-    <link rel="stylesheet" href="./style.css">
-    <link rel="manifest" href="./manifest.json">
+    
+    <!-- Progressive Web App Metadata -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="description" content="An offline-first progressive web application">
+    
+    <!-- iOS PWA Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon" href="images/dog.png">
 </head>
 <body>
     <div id="connection-banner"></div>
     
     <div class="container">
-        <h1>My Offline-First Website</h1>
+        <h1>Offline-First Web App</h1>
         
         <div id="connection-status">
             <div id="status-indicator"></div>
@@ -21,30 +30,30 @@
         <div id="content">
             <section id="online-content" class="hidden">
                 <h2>Online Mode</h2>
-                <p>You're connected to the internet! All features are available.</p>
+                <p>Connected to the internet with full functionality.</p>
                 <div class="feature-list">
                     <div class="feature">
                         <h3>Live Updates</h3>
                         <p>Real-time data synchronization</p>
                     </div>
                     <div class="feature">
-                        <h3>Cloud Backup</h3>
-                        <p>Automatic data backup to cloud</p>
+                        <h3>Cloud Sync</h3>
+                        <p>Automatic data backup</p>
                     </div>
                 </div>
             </section>
             
             <section id="offline-content" class="hidden">
                 <h2>Offline Mode</h2>
-                <p>You're currently offline. Some features are limited.</p>
+                <p>Limited functionality. Cached content available.</p>
                 <div class="feature-list">
                     <div class="feature">
                         <h3>Cached Content</h3>
-                        <p>Access previously loaded pages</p>
+                        <p>Access previously loaded resources</p>
                     </div>
                     <div class="feature">
-                        <h3>Saved Data</h3>
-                        <p>Local storage remains accessible</p>
+                        <h3>Local Storage</h3>
+                        <p>Persist data locally</p>
                     </div>
                 </div>
             </section>
@@ -52,11 +61,11 @@
         
         <div id="network-details">
             <h3>Network Information</h3>
-            <p id="network-type">Connection Type: Unknown</p>
-            <p id="effective-type">Effective Type: Unknown</p>
+            <p id="network-type">Connection: Unknown</p>
+            <p id="effective-type">Speed: Unknown</p>
         </div>
     </div>
 
-    <script src="./script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

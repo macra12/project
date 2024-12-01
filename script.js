@@ -9,43 +9,54 @@ function updateConnectionStatus() {
   const effectiveType = document.getElementById('effective-type');
 
   if (navigator.onLine) {
-      // Online Mode
-      banner.textContent = 'You are Online';
-      banner.className = 'online-mode';
-      statusIndicator.style.backgroundColor = 'green';
-      statusMessage.textContent = 'Connected to Internet';
-      
-      onlineContent.classList.remove('hidden');
-      offlineContent.classList.add('hidden');
+    banner.textContent = 'You are Online';
+    banner.className = 'online-mode';
+    statusIndicator.style.backgroundColor = 'green';
+    statusMessage.textContent = 'Connected to Internet';
+    
+    onlineContent.classList.remove('hidden');
+    offlineContent.classList.add('hidden');
   } else {
-      // Offline Mode
-      banner.textContent = 'You are Offline';
-      banner.className = 'offline-mode';
-      statusIndicator.style.backgroundColor = 'red';
-      statusMessage.textContent = 'No Internet Connection';
-      
-      onlineContent.classList.add('hidden');
-      offlineContent.classList.remove('hidden');
+    banner.textContent = 'You are Offline';
+    banner.className = 'offline-mode';
+    statusIndicator.style.backgroundColor = 'red';
+    statusMessage.textContent = 'No Internet Connection';
+    
+    onlineContent.classList.add('hidden');
+    offlineContent.classList.remove('hidden');
   }
 
-  // Network Information
+  // Enhanced Network Information
   if (navigator.connection) {
-      networkType.textContent = `Connection Type: ${navigator.connection.type || 'Unknown'}`;
-      effectiveType.textContent = `Effective Type: ${navigator.connection.effectiveType || 'Unknown'}`;
+    networkType.textContent = `Connection: ${navigator.connection.type || 'Unknown'}`;
+    effectiveType.textContent = `Speed: ${navigator.connection.effectiveType || 'Unknown'}`;
   }
 }
 
-// Service Worker Registration
+// Service Worker Registration with Error Handling
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./service-worker.js')
-          .then((registration) => {
-              console.log('Service Worker registered successfully');
-          })
-          .catch((error) => {
-              console.error('Service Worker registration failed:', error);
+    navigator.serviceWorker.register('/service-worker.js')
+      .then((registration) => {
+        console.log('Service Worker registered successfully');
+        
+        // Optional: Handle service worker updates
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed') {
+              console.log('Service Worker updated');
+            }
           });
-}}
+        });
+      })
+      .catch((error) => {
+        console.error('Service Worker registration failed:', error);
+      });
+  } else {
+    console.warn('Service Workers not supported');
+  }
+}
 
 // Event Listeners
 window.addEventListener('load', () => {

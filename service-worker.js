@@ -1,10 +1,10 @@
 const CACHE_NAME = 'offline-cache-v1';
 const CACHE_URLS = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/script.js',
-  '/manifest.json'
+  './',
+  './index.html',
+  './style.css',
+  './script.js',
+  './manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
@@ -12,7 +12,13 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('Attempting to cache resources');
-        return cache.addAll(CACHE_URLS.map(url => new Request(url, { cache: 'no-cache' })));
+        // Use URLs relative to the service worker's location
+        return cache.addAll(CACHE_URLS.map(url => 
+          new Request(url, { 
+            mode: 'no-cors',  // Handle cross-origin requests
+            cache: 'no-cache' 
+          })
+        ));
       })
       .then(() => {
         console.log('All resources cached successfully');
@@ -25,8 +31,8 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Ignore chrome-extension and other non-http requests
-  if (!event.request.url.startsWith('http')) {
+  // Ignore non-http requests and chrome-extension URLs
+  if (!event.request.url.startsWith('http') && !event.request.url.startsWith('https')) {
     return;
   }
 
@@ -38,28 +44,27 @@ self.addEventListener('fetch', (event) => {
           return response;
         }
 
-        // IMPORTANT: Clone the request stream
-        const fetchRequest = event.request.clone();
+        // Try network request
+        return fetch(event.request)
+          .then((networkResponse) => {
+            // Only cache successful GET requests
+            if (
+              event.request.method === 'GET' && 
+              networkResponse.status === 200 && 
+              (networkResponse.type === 'basic' || networkResponse.type === 'cors')
+            ) {
+              const responseToCache = networkResponse.clone();
 
-        return fetch(fetchRequest)
-          .then((response) => {
-            // Check if we received a valid response
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
+              caches.open(CACHE_NAME)
+                .then((cache) => {
+                  cache.put(event.request, responseToCache);
+                })
+                .catch((error) => {
+                  console.error('Caching error:', error);
+                });
             }
 
-            // IMPORTANT: Clone the response stream
-            const responseToCache = response.clone();
-
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, responseToCache);
-              })
-              .catch((error) => {
-                console.error('Caching error:', error);
-              });
-
-            return response;
+            return networkResponse;
           })
           .catch(() => {
             // Offline fallback

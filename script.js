@@ -33,23 +33,34 @@ function updateConnectionStatus() {
   }
 }
 
-
-// In script.js, update the service worker registration path
+// Service Worker Registration
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js')  // Use absolute path
+    // Use the correct path relative to your repository
+    const swPath = location.hostname === 'localhost' 
+      ? '/service-worker.js' 
+      : `/${location.pathname.split('/')[1]}/service-worker.js`;
+
+    navigator.serviceWorker.register(swPath)
       .then((registration) => {
-        console.log('Service Worker registered successfully');
+        console.log('Service Worker registered successfully', registration);
+        
+        // Optional: Handle service worker updates
+        registration.addEventListener('updatefound', () => {
+          const installingWorker = registration.installing;
+          console.log('A new service worker is being installed:', installingWorker);
+        });
       })
       .catch((error) => {
         console.error('Service Worker registration failed:', error);
-        // Log the full error details
         console.error('Error details:', {
           name: error.name,
           message: error.message,
           stack: error.stack
         });
       });
+  } else {
+    console.warn('Service Workers are not supported in this browser.');
   }
 }
 

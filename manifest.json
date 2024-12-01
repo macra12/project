@@ -1,5 +1,5 @@
 {
-    "name": "My Offline Website",
+    "name": "Offline Website",
     "short_name": "OfflineSite",
     "start_url": "/",
     "display": "standalone",

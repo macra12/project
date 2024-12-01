@@ -1,40 +1,35 @@
 // service-worker.js
 
-// The name of the cache
-const CACHE_NAME = 'my-site-cache-v1';
-
-// List of files to cache
+const CACHE_NAME = 'offline-cache-v1';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/style.css', // Add all the important CSS files
-  '/script.js', // Add your main JS file
-  '/images/*',  // Add any images you want to cache
+  '/style.css',
+  '/script.js',
 ];
 
-// Install the service worker and cache the files
+// Install the service worker and cache files
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Opened cache');
+        console.log('Caching essential files');
         return cache.addAll(urlsToCache);
       })
   );
 });
 
-// Fetch resources (will serve from cache if offline)
+// Fetch resources and serve from cache when offline
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // Return the cached response if available, otherwise fetch it
-        return response || fetch(event.request);
+        return response || fetch(event.request);  // Return cached or fetch new
       })
   );
 });
 
-// Activate the service worker and clean up old caches
+// Activate service worker and clean up old caches
 self.addEventListener('activate', (event) => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
@@ -42,7 +37,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (!cacheWhitelist.includes(cacheName)) {
-            return caches.delete(cacheName);
+            return caches.delete(cacheName);  // Delete old caches
           }
         })
       );

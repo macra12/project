@@ -1,31 +1,22 @@
 const CACHE_NAME = 'offline-cache-v1';
 const CACHE_URLS = [
-  './',
-  './index.html',
-  './style.css',
-  './script.js',
-  './manifest.json'
+  '/',
+  '/index.html',
+  '/style.css',
+  '/script.js',
+  '/manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        // Use cache.addAll with a filter to ignore unsupported requests
-        return cache.addAll(
-          CACHE_URLS.filter(url => {
-            try {
-              new URL(url, location.origin);
-              return true;
-            } catch {
-              console.warn(`Skipping invalid URL: ${url}`);
-              return false;
-            }
-          })
-        );
+        console.log('Attempting to cache resources');
+        return cache.addAll(CACHE_URLS.map(url => new Request(url, { cache: 'no-cache' })));
       })
       .then(() => {
-        console.log('Cache installation successful');
+        console.log('All resources cached successfully');
+        return self.skipWaiting(); // Activate worker immediately
       })
       .catch((error) => {
         console.error('Cache installation error:', error);
@@ -34,43 +25,44 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Filter out non-HTTP(S) requests
-  if (!event.request.url.startsWith('http') && !event.request.url.startsWith('https')) {
+  // Ignore chrome-extension and other non-http requests
+  if (!event.request.url.startsWith('http')) {
     return;
   }
 
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // Return cached response if available
+        // Cache hit - return response
         if (response) {
           return response;
         }
 
-        // Try network request
-        return fetch(event.request)
-          .then((networkResponse) => {
-            // Only cache successful GET requests
-            if (
-              event.request.method === 'GET' && 
-              networkResponse.status === 200 && 
-              networkResponse.type === 'basic'
-            ) {
-              const responseCopy = networkResponse.clone();
-              
-              caches.open(CACHE_NAME)
-                .then((cache) => {
-                  cache.put(event.request, responseCopy);
-                })
-                .catch((error) => {
-                  console.error('Caching error:', error);
-                });
+        // IMPORTANT: Clone the request stream
+        const fetchRequest = event.request.clone();
+
+        return fetch(fetchRequest)
+          .then((response) => {
+            // Check if we received a valid response
+            if (!response || response.status !== 200 || response.type !== 'basic') {
+              return response;
             }
 
-            return networkResponse;
+            // IMPORTANT: Clone the response stream
+            const responseToCache = response.clone();
+
+            caches.open(CACHE_NAME)
+              .then((cache) => {
+                cache.put(event.request, responseToCache);
+              })
+              .catch((error) => {
+                console.error('Caching error:', error);
+              });
+
+            return response;
           })
           .catch(() => {
-            // Fallback for offline scenarios
+            // Offline fallback
             return new Response('Offline: Resource unavailable', { 
               status: 404, 
               headers: { 'Content-Type': 'text/plain' } 
@@ -92,6 +84,9 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
+    })
+    .then(() => {
+      return self.clients.claim(); // Take control of uncontrolled clients
     })
   );
 });

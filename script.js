@@ -33,28 +33,23 @@ function updateConnectionStatus() {
   }
 }
 
-// Service Worker Registration with Error Handling
+
+// In script.js, update the service worker registration path
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js')
+    navigator.serviceWorker.register('/service-worker.js')  // Use absolute path
       .then((registration) => {
         console.log('Service Worker registered successfully');
-        
-        // Optional: Handle service worker updates
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed') {
-              console.log('Service Worker updated');
-            }
-          });
-        });
       })
       .catch((error) => {
         console.error('Service Worker registration failed:', error);
+        // Log the full error details
+        console.error('Error details:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        });
       });
-  } else {
-    console.warn('Service Workers not supported');
   }
 }
 
